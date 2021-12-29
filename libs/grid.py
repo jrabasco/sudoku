@@ -57,10 +57,15 @@ _NUMBERS = [
 class Grid:
     def __init__(self,
                  grid: List[List[Optional[int]]]):
+        self.load(grid)
+
+    def load(self,
+             grid: List[List[Optional[int]]]):
         self._grid = []
         for row in grid:
             crow = [Cell(elm) for elm in row]
             self._grid.append(crow)
+
 
     def rows(self) -> Iterable[List[Cell]]:
         for row in self._grid:
@@ -159,6 +164,9 @@ class Cell:
 
     def add_guess(self, nb: int):
         self._guesses.add(nb)
+
+    def remove_guesses(self, guesses: Set[int]):
+        self._guesses -= guesses
 
     def __repr__(self):
         return f"Cell({self._value}, {self._guesses})"

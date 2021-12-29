@@ -1,4 +1,5 @@
 from typing import List
+from collections import defaultdict
 
 from .grid import Grid, Cell
 
@@ -6,6 +7,8 @@ def add_solo_annotations(g: Grid) -> bool:
     changed = False
     for row in g.rows():
         for cell in row:
+            if cell.value is not None:
+                continue
             if len(cell.guesses) == 1:
                 changed = True
                 cell.value = cell.guesses.pop()
@@ -22,13 +25,8 @@ def annotate(g: Grid):
             col = g.col(j)
             cell.reset_guesses()
             for nb in range(1, 10):
-                if in_list(nb, row):
-                    continue
-                if in_list(nb, col):
-                    continue
-                if in_list(nb, square):
-                    continue
-                cell.add_guess(nb)
+                if can_fit(g, nb, i, j):
+                    cell.add_guess(nb)
 
 
 def add_solo_numbers(g: Grid) -> bool:
@@ -130,8 +128,43 @@ def red(g: Grid) -> bool:
     return changed
 
 def solve(g: Grid):
-    changed = True
     i = 1
-    while changed:
-        i+=1
-        changed = red(g)
+    backtrack = []
+    done = False
+    while not done:
+        changed = True
+        while changed:
+            i+=1
+            changed = red(g)
+
+        if not verify(g):
+            annotate(g)
+            s_i = -1
+            s_j = -1
+            choices = None
+            for i, row in enumerate(g.rows()):
+                for j, cell in enumerate(row):
+                    if cell.value is not None:
+                        continue
+                    if choices is None or len(choices) > len(cell.guesses):
+                        choices = cell.guesses
+                        s_i = i
+                        s_j = j
+            if choices is None:
+                choices = set()
+
+            while len(choices) == 0 and len(backtrack) > 0:
+                s_i, s_j, choices, copy = backtrack.pop()
+                g.load(copy)
+
+            if len(choices) == 0:
+                # no possible move and no backtrack
+                raise Exception('wtf')
+
+            copy = [[c.value for c in row] for row in g.rows()]
+            g.set(s_i, s_j, choices.pop())
+            nc = {c for c in choices}
+            backtrack.append((s_i, s_j, nc, copy))
+        else:
+            done = True
+

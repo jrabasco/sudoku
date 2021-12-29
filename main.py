@@ -1,6 +1,6 @@
 #!/usr/bin/python3.8
 import os
-from libs import Grid, solve, verify, annotate, square_to_coords
+from libs import Grid, solve, verify, annotate
 
 
 for prefix, _, files in os.walk('dataset'):
